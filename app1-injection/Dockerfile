@@ -26,6 +26,9 @@ RUN useradd -m -s /bin/bash ctfuser && \
 
 USER ctfuser
 
+# Set environment variable with flag for command injection challenge
+ENV CMD_FLAG="CTF{c0mm4nd_1nj3ct10n_3nv_v4r5_2025}"
+
 EXPOSE 5001
 
 CMD ["python", "app.py"] 

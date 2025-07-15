@@ -11,7 +11,7 @@ from flask import Flask, render_template_string, request, jsonify, session, redi
 import logging
 
 app = Flask(__name__)
-app.secret_key = 'vulnerable_secret_key_123'  # Intentionally weak
+app.secret_key = 'vulnerable_secret_key_123'
 
 # Database configuration
 DB_CONFIG = {
@@ -69,10 +69,7 @@ BASE_TEMPLATE = '''
                 <li><a href="./">Home</a></li>
                 <li><a href="./search">SQL Injection - Product Search</a></li>
                 <li><a href="./login">SQL Injection - Login Bypass</a></li>
-                <li><a href="./user">SQL Injection - User Profile</a></li>
-                <li><a href="./comment">Cross-Site Scripting (XSS)</a></li>
                 <li><a href="./ping">Command Injection - Network Tools</a></li>
-                <li><a href="./admin">Admin Panel (Hidden)</a></li>
             </ul>
         </div>
     </div>
@@ -84,13 +81,13 @@ BASE_TEMPLATE = '''
 def index():
     content = '''
     <h2>Welcome to the Injection Challenge Lab</h2>
-    <p>This application contains multiple injection vulnerabilities following the OWASP Top 10.</p>
+    <p>This application contains three injection vulnerabilities following the OWASP Top 10.</p>
     
     <div class="challenge">
         <h3>Your Mission:</h3>
         <ul>
             <li>Find SQL Injection vulnerabilities to access hidden data</li>
-            <li>Exploit XSS vulnerabilities to execute JavaScript</li>
+            <li>Bypass authentication using SQL injection</li>
             <li>Use Command Injection to execute system commands</li>
             <li>Capture flags in the format: <code>CTF{...}</code></li>
         </ul>
@@ -100,9 +97,9 @@ def index():
         <h3>Hints:</h3>
         <ul>
             <li>Try different SQL payloads: <code>' OR '1'='1</code></li>
-            <li>Look for UNION-based injection opportunities</li>
-            <li>Test XSS with: <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code></li>
+            <li>Look for authentication bypass opportunities</li>
             <li>Command injection: Try chaining commands with <code>;</code> or <code>&&</code></li>
+            <li>Environment variables may contain sensitive information</li>
         </ul>
     </div>
     '''
@@ -118,7 +115,6 @@ def search_form():
         if conn:
             cursor = conn.cursor()
             try:
-                # VULNERABLE: Direct string concatenation
                 vulnerable_query = f"SELECT id, name, price, description FROM products WHERE name LIKE '%{query}%'"
                 logging.info(f"Executing query: {vulnerable_query}")
                 cursor.execute(vulnerable_query)
@@ -143,7 +139,7 @@ def search_form():
     
     <div class="challenge">
         <h4>💡 Hint:</h4>
-        <p>The search functionality might be vulnerable to SQL injection. Try searching for: <code>' OR 1=1 --</code></p>
+        <p>The search functionality might be vulnerable to SQL injection. Try searching for: <code>' OR 1=1; --</code></p>
     </div>
     '''
     
@@ -159,7 +155,6 @@ def login():
         if conn:
             cursor = conn.cursor()
             try:
-                # VULNERABLE: SQL injection in login
                 query = f"SELECT id, username, role FROM users WHERE username = '{username}' AND password = '{password}'"
                 logging.info(f"Login query: {query}")
                 cursor.execute(query)
@@ -171,7 +166,7 @@ def login():
                     session['role'] = user[2]
                     
                     if user[2] == 'admin':
-                        flag = os.getenv('FLAG_A03', 'CTF{1nj3ct10n_m4st3r_2024}')
+                        flag = os.getenv('FLAG_A03', 'CTF{1nj3ct10n_m4st3r_2025}')
                         content = f'''
                         <div class="result flag">
                             <h2>🎉 Login Successful!</h2>
@@ -216,7 +211,7 @@ def login():
         
         <div class="challenge">
             <h4>💡 Hint:</h4>
-            <p>Try bypassing authentication with: <code>admin' --</code> or <code>' OR '1'='1' --</code></p>
+            <p>Try bypassing authentication for user: <code>admin</code></p>
         </div>
         '''
         
@@ -233,100 +228,7 @@ def login():
         
         <div class="challenge">
             <h4>💡 Hint:</h4>
-            <p>Try bypassing authentication with: <code>admin' --</code> or <code>' OR '1'='1' --</code></p>
-        </div>
-        '''
-    
-    return render_template_string(BASE_TEMPLATE, content=content)
-
-@app.route('/user')
-def user_profile():
-    user_id = request.args.get('id', '1')
-    
-    conn = get_db_connection()
-    results = []
-    
-    if conn:
-        cursor = conn.cursor()
-        try:
-            # VULNERABLE: Direct parameter injection
-            query = f"SELECT id, username, email, role FROM users WHERE id = {user_id}"
-            logging.info(f"User query: {query}")
-            cursor.execute(query)
-            results = cursor.fetchall()
-        except mysql.connector.Error as err:
-            results = [("Error", str(err), "", "")]
-        finally:
-            cursor.close()
-            conn.close()
-    
-    result_table = ''
-    if results:
-        result_table = '<div class="result"><h3>User Information:</h3><table><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>'
-        for row in results:
-            result_table += f'<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td></tr>'
-        result_table += '</table></div>'
-    
-    content = f'''
-    <h2>👤 User Profile (SQL Injection Challenge)</h2>
-    <form method="GET">
-        <label>User ID:</label><br>
-        <input type="text" name="id" value="{user_id}">
-        <button type="submit">Get Profile</button>
-    </form>
-    
-    {result_table}
-    
-    <div class="challenge">
-        <h4>💡 Hint:</h4>
-        <p>Try UNION injection: <code>1 UNION SELECT 1,flag_value,3,4 FROM secret_flags --</code></p>
-    </div>
-    '''
-    
-    return render_template_string(BASE_TEMPLATE, content=content)
-
-@app.route('/comment', methods=['GET', 'POST'])
-def comment():
-    if request.method == 'POST':
-        name = request.form.get('name', '')
-        comment_text = request.form.get('comment', '')
-        
-        # VULNERABLE: Direct rendering without escaping (XSS)
-        content = f'''
-        <h2>💬 Comment System (XSS Challenge)</h2>
-        <div class="result">
-            <h3>Your Comment:</h3>
-            <p><strong>Name:</strong> {name}</p>
-            <p><strong>Comment:</strong> {comment_text}</p>
-        </div>
-        
-        <form method="POST">
-            <label>Name:</label><br>
-            <input type="text" name="name" required><br>
-            <label>Comment:</label><br>
-            <textarea name="comment" rows="4" required></textarea><br><br>
-            <button type="submit">Post Comment</button>
-        </form>
-        
-        <div class="challenge">
-            <h4>💡 Hint:</h4>
-            <p>Try XSS payload: <code>&lt;script&gt;alert('XSS Flag: CTF{{{{xss_vuln3r4b1l1ty_2024}}}}')&lt;/script&gt;</code></p>
-        </div>
-        '''
-    else:
-        content = '''
-        <h2>💬 Comment System (XSS Challenge)</h2>
-        <form method="POST">
-            <label>Name:</label><br>
-            <input type="text" name="name" required><br>
-            <label>Comment:</label><br>
-            <textarea name="comment" rows="4" required></textarea><br><br>
-            <button type="submit">Post Comment</button>
-        </form>
-        
-        <div class="challenge">
-            <h4>💡 Hint:</h4>
-            <p>Try XSS payload: <code>&lt;script&gt;alert('XSS Flag: CTF{xss_vuln3r4b1l1ty_2024}')&lt;/script&gt;</code></p>
+            <p>Try bypassing authentication for user: <code>admin</code></p>
         </div>
         '''
     
@@ -338,7 +240,6 @@ def ping_tool():
         host = request.form.get('host', '127.0.0.1')
         
         try:
-            # VULNERABLE: Command injection
             command = f"ping -c 4 {host}"
             logging.info(f"Executing command: {command}")
             result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=10)
@@ -363,7 +264,7 @@ def ping_tool():
         
         <div class="challenge">
             <h4>💡 Hint:</h4>
-            <p>Try command injection: <code>127.0.0.1; cat /etc/passwd</code> or <code>127.0.0.1 && echo "FLAG: CTF{{{{c0mm4nd_1nj3ct10n_2024}}}}"</code></p>
+            <p>The system has sensitive information stored in environment variables. Try command injection to read them.</p>
         </div>
         '''
     else:
@@ -377,65 +278,11 @@ def ping_tool():
         
         <div class="challenge">
             <h4>💡 Hint:</h4>
-            <p>Try command injection: <code>127.0.0.1; cat /etc/passwd</code> or <code>127.0.0.1 && echo "FLAG: CTF{c0mm4nd_1nj3ct10n_2024}"</code></p>
+            <p>The system has sensitive information stored in environment variables. Try command injection to read them.</p>
         </div>
         '''
     
     return render_template_string(BASE_TEMPLATE, content=content)
-
-@app.route('/admin')
-def admin_panel():
-    # Check if user is logged in as admin
-    if session.get('role') == 'admin':
-        conn = get_db_connection()
-        flags = []
-        
-        if conn:
-            cursor = conn.cursor()
-            try:
-                cursor.execute("SELECT flag_name, flag_value FROM secret_flags")
-                flags = cursor.fetchall()
-            except mysql.connector.Error as err:
-                flags = [("Error", str(err))]
-            finally:
-                cursor.close()
-                conn.close()
-        
-        content = '''
-        <h2>🔒 Admin Panel</h2>
-        <div class="result flag">
-            <h3>🎉 Congratulations! You've accessed the admin panel!</h3>
-            <p><strong>Hidden Flags:</strong></p>
-            <ul>
-        '''
-        
-        for flag_name, flag_value in flags:
-            content += f'<li><strong>{flag_name}:</strong> {flag_value}</li>'
-        
-        content += '''
-            </ul>
-        </div>
-        '''
-    else:
-        content = '''
-        <h2>🔒 Admin Panel</h2>
-        <div class="result">
-            <p style="color: red;">Access Denied! Admin privileges required.</p>
-            <p>Try logging in first at <a href="./login">./login</a></p>
-        </div>
-        '''
-    
-    return render_template_string(BASE_TEMPLATE, content=content)
-
-@app.route('/debug')
-def debug_info():
-    """Hidden debug endpoint"""
-    debug_info = {
-        'session': dict(session),
-        'environment': dict(os.environ),
-        'database_config': {k: v if k != 'password' else '***' for k, v in DB_CONFIG.items()}
-    }
-    return jsonify(debug_info)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

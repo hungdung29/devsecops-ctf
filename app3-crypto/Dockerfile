@@ -17,7 +17,7 @@ COPY . .
 # Create vulnerable files directory
 RUN mkdir -p /app/data && \
     echo "secret_key_12345" > /app/data/encryption_key.txt && \
-    echo "CTF{cr4pt0_f41lur3_3xp0s3d_2024}" > /app/data/secret_flag.txt
+    echo "CTF{cr4pt0_f41lur3_3xp0s3d_2025}" > /app/data/secret_flag.txt
 
 # Create non-root user but keep file permissions loose
 RUN useradd -m -s /bin/bash ctfuser && \

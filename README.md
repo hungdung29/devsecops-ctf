@@ -1,4 +1,4 @@
-# OWASP Top 10 CTF Challenge 2024
+# OWASP Top 10 CTF Challenge 2025
 
 Welcome to the OWASP Top 10 CTF Challenge! This is a comprehensive Capture The Flag (CTF) environment designed for software security workshops and educational purposes.
 
@@ -10,9 +10,8 @@ This CTF environment contains multiple vulnerable web applications that demonstr
 
 The environment consists of:
 
-- **5 Vulnerable Web Applications**
+- **4 Vulnerable Web Applications**
 - **2 Database Services** (MySQL, PostgreSQL)
-- **1 Redis Cache**
 - **1 Internal Flag Server**
 - **1 Nginx Reverse Proxy**
 
@@ -41,10 +40,14 @@ docker-compose up -d
 
 3. Wait for all services to be ready (about 2-3 minutes)
 
-4. Access the main dashboard:
+4. Access the applications:
 
 ```
-http://localhost
+http://localhost           - Main dashboard
+http://localhost/injection/ - SQL/Command injection
+http://localhost/access/   - Access control vulnerabilities
+http://localhost/crypto/   - Cryptographic failures
+http://localhost/ssrf/     - SSRF and misconfigurations
 ```
 
 ### Stopping the Environment
@@ -59,187 +62,109 @@ docker-compose down
 
 **OWASP A03: Injection**
 
-- **Port**: 5001
+- **Port**: 5001 (via `/injection/`)
 - **Database**: MySQL
 - **Vulnerabilities**:
-  - SQL Injection (Error-based, Union-based, Blind)
-  - Cross-Site Scripting (XSS)
-  - Command Injection
-  - NoSQL Injection
+  - SQL Injection (Login bypass, Data extraction)
+  - Command Injection (Network tools)
 
-**Flags to Find**:
-
-- `CTF{1nj3ct10n_m4st3r_2024}`
-- `CTF{sql_1nj3ct10n_m4st3r_2024}`
-- `CTF{bl1nd_sql1_n1nj4_2024}`
-- `CTF{un10n_s3l3ct_h3r0_2024}`
-
-### 2. Authentication Failures (`/auth/`)
-
-**OWASP A07: Identification and Authentication Failures**
-
-- **Port**: 5002
-- **Database**: Redis
-- **Vulnerabilities**:
-  - Weak Password Policies
-  - Brute Force Protection Bypass
-  - Session Management Issues
-  - JWT Vulnerabilities
-  - Password Reset Flaws
-
-**Default Credentials**:
-
-- `admin / admin`
-- `user1 / password`
-- `john / 123456`
-- `alice / alice123`
-
-**Flags to Find**:
-
-- `CTF{4uth_byp4ss_h4ck3r_2024}`
-- `CTF{p4ssw0rd_r3s3t_vuln_2024}`
-- `CTF{4dm1n_4cc3ss_gr4nt3d_2024}`
-
-### 3. Broken Access Control (`/access/`)
+### 2. Broken Access Control (`/access/`)
 
 **OWASP A01: Broken Access Control**
 
-- **Port**: 5003
+- **Port**: 5003 (via `/access/`)
 - **Database**: PostgreSQL
 - **Vulnerabilities**:
-  - Insecure Direct Object References (IDOR)
-  - Privilege Escalation
-  - Missing Function Level Access Control
-  - Directory Traversal
+  - Missing Function Level Access Control (Admin panel access)
+  - Directory Traversal (File access)
+  - Insecure API Endpoints
 
-**Flags to Find**:
+**Test Accounts**:
 
-- `CTF{4cc3ss_c0ntr0l_pwn3d_2024}`
-- `CTF{m4st3r_4p1_k3y_3xp0s3d_2024}`
-- `CTF{b4ckd00r_4cc3ss_gr4nt3d_2024}`
+- `employee1 / password123`
+- `employee2 / qwerty456`
 
-### 4. Cryptographic Failures (`/crypto/`)
+### 3. Cryptographic Failures (`/crypto/`)
 
 **OWASP A02: Cryptographic Failures**
 
-- **Port**: 5004
+- **Port**: 5004 (via `/crypto/`)
 - **Vulnerabilities**:
-  - Weak Encryption Algorithms
-  - Hard-coded Encryption Keys
-  - Insecure Random Number Generation
-  - Hash Collision Attacks
-  - Certificate Validation Issues
+  - Weak Hashing Algorithms (MD5)
+  - Predictable Random Number Generation
 
-**Flags to Find**:
-
-- `CTF{cr4pt0_f41lur3_3xp0s3d_2024}`
-- `CTF{w34k_3ncr4pt10n_2024}`
-- `CTF{h4rd_c0d3d_k3y_2024}`
-
-### 5. SSRF & Security Misconfiguration (`/ssrf/`)
+### 4. SSRF & Security Misconfiguration (`/ssrf/`)
 
 **OWASP A05: Security Misconfiguration & A10: Server-Side Request Forgery**
 
-- **Port**: 5005
+- **Port**: 5005 (via `/ssrf/`)
 - **Vulnerabilities**:
   - Server-Side Request Forgery (SSRF)
-  - Information Disclosure
-  - Default Configurations
-  - Unnecessary HTTP Methods
-  - Verbose Error Messages
-
-**Flags to Find**:
-
-- `CTF{ssrf_4nd_m1sc0nf1g_2024}`
-- `CTF{s3cur1ty_m1sc0nf1g_2024}`
-- `CTF{1nf0rm4t10n_d1scl0sur3_2024}`
-
-### 6. Internal Flag Server
-
-**OWASP A04, A06, A08, A09: Design Flaws, Vulnerable Components, Integrity Failures, Logging Failures**
-
-- **Port**: 8080 (Internal only)
-- **Access**: Via SSRF or other internal access methods
-- **Contains flags for**:
-  - Insecure Design
-  - Vulnerable and Outdated Components
-  - Software and Data Integrity Failures
-  - Security Logging and Monitoring Failures
+  - Internal Service Access
 
 ## 🛠️ Tools & Techniques
-
-### Recommended Tools
-
-- **Burp Suite** or **OWASP ZAP** - Web application security scanner
-- **SQLMap** - Automated SQL injection tool
-- **Curl** - Command line HTTP client
-- **Browser Developer Tools** - Built-in browser debugging
-- **Postman** - API testing tool
 
 ### Common Attack Techniques
 
 1. **SQL Injection**:
 
    ```sql
-   ' OR '1'='1' --
-   ' UNION SELECT 1,2,3,4 --
+   admin' OR '1'='1' --
+   admin' --
    ```
 
-2. **XSS Payloads**:
-
-   ```html
-   <script>
-     alert("XSS");
-   </script>
-   <img src=x onerror=alert('XSS')>
-   ```
-
-3. **Command Injection**:
+2. **Command Injection**:
 
    ```bash
-   ; cat /etc/passwd
-   && whoami
+   127.0.0.1; cat /proc/version
+   127.0.0.1 && env
+   ```
+
+3. **Path Traversal**:
+
+   ```
+   ../secrets/flag.txt
+   ../../etc/passwd
    ```
 
 4. **SSRF Payloads**:
+
    ```
-   http://localhost:8080/
-   http://flag-server:8080/
-   file:///etc/passwd
+   http://flag-server:8080/flags
+   http://flag-server:8080/admin
    ```
 
-## 🎖️ Scoring
+5. **MD5 Hash Cracking**:
+   ```bash
+   # Use external tools like hashcat or online crackers
+   # The admin password is a common word + 1-3 digits
+   hashcat -m 0 -a 3 <hash> ?l?l?l?l?l?l?l?d?d?d
+   ```
 
-### Flag Format
+### Special Attack Notes
 
-All flags follow the format: `CTF{...}`
-
-### Point Values
-
-- **Easy Flags**: 100 points
-- **Medium Flags**: 200 points
-- **Hard Flags**: 300 points
-- **Hidden Flags**: 500 points
-
-### Total Available Points
-
-- **25+ Flags** available across all applications
-- **Maximum Score**: ~5000 points
+- **Access Control Bypass**: Admin panel is accessible without proper role checking
+- **Path Traversal**: File viewer accepts `?file=` parameter vulnerable to directory traversal
+- **Rate Limiting**: Crypto app has rate limiting on hash attempts - use external tools
+- **Random Prediction**: Random numbers are seeded with time rounded to 30-second intervals
+- **Internal Network**: Flag server only accessible from internal Docker network
 
 ## 📚 Learning Resources
 
-### OWASP Top 10 2021
+### OWASP Top 10 2021 Coverage
 
-1. **A01** - Broken Access Control
-2. **A02** - Cryptographic Failures
-3. **A03** - Injection
-4. **A04** - Insecure Design
-5. **A05** - Security Misconfiguration
-6. **A06** - Vulnerable and Outdated Components
-7. **A07** - Identification and Authentication Failures
-8. **A08** - Software and Data Integrity Failures
-9. **A09** - Security Logging and Monitoring Failures
-10. **A10** - Server-Side Request Forgery (SSRF)
+This CTF environment covers the following OWASP Top 10 categories:
+
+1. **A01** - Broken Access Control ✅ (Access app)
+2. **A02** - Cryptographic Failures ✅ (Crypto app)
+3. **A03** - Injection ✅ (Injection app)
+4. **A04** - Insecure Design ⚪ (Internal flag server)
+5. **A05** - Security Misconfiguration ✅ (SSRF app)
+6. **A06** - Vulnerable and Outdated Components ⚪ (Internal flag server)
+7. **A07** - Identification and Authentication Failures ❌ (Not implemented)
+8. **A08** - Software and Data Integrity Failures ⚪ (Internal flag server)
+9. **A09** - Security Logging and Monitoring Failures ⚪ (Internal flag server)
+10. **A10** - Server-Side Request Forgery (SSRF) ✅ (SSRF app)
 
 ### Additional Resources
 
@@ -268,7 +193,8 @@ All flags follow the format: `CTF{...}`
 
 2. **Port conflicts**:
 
-   - Check if ports 80, 5001-5005, 8080 are available
+   - Check if port 80 is available (main access point)
+   - Internal application ports (5001, 5003-5005, 8080) should not conflict as they're containerized
    - Modify `docker-compose.yml` if needed
 
 3. **Database connection issues**:
@@ -305,7 +231,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-Created for software security workshops and educational purposes.
+- [Manuel Wieser - @mwieser](https://github.com/mwieser)
 
 ---
 

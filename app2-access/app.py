@@ -84,11 +84,9 @@ BASE_TEMPLATE = '''
             <ul>
                 <li><a href="./">Home</a></li>
                 <li><a href="./login">Login</a></li>
-                <li><a href="./profile">User Profile (IDOR)</a></li>
+                <li><a href="./profile">User Profile</a></li>
                 <li><a href="./admin">Admin Panel</a></li>
                 <li><a href="./files">File Access</a></li>
-                <li><a href="./api/users">API Endpoints</a></li>
-                <li><a href="./direct">Direct Object Reference</a></li>
             </ul>
         </div>
     </div>
@@ -116,9 +114,9 @@ def index():
     <div class="challenge">
         <h3>Test Accounts:</h3>
         <ul>
-            <li><code>alice / password123</code> (Regular User)</li>
-            <li><code>bob / secret456</code> (Regular User)</li>
-            <li><code>admin / admin123</code> (Administrator)</li>
+            <li><code>employee1 / password123</code> (Regular User)</li>
+            <li><code>employee2 / qwerty456</code> (Regular User)</li>
+            <li><code>admin</code> (Administrator)</li>
         </ul>
     </div>
     '''
@@ -143,12 +141,10 @@ def login():
                     session['role'] = user[3]
                     
                     if user[3] == 'admin':
-                        flag = os.getenv('FLAG_A01', 'CTF{4cc3ss_c0ntr0l_pwn3d_2024}')
                         content = f'''
                         <div class="result flag">
                             <h2>🎉 Admin Login Successful!</h2>
                             <p>Welcome, {user[1]}!</p>
-                            <p><strong>FLAG CAPTURED:</strong> {flag}</p>
                         </div>
                         '''
                     else:
@@ -194,16 +190,14 @@ def logout():
 
 @app.route('/profile')
 def profile():
-    user_id = request.args.get('id', session.get('user_id'))
-    
     if not session.get('username'):
-        return redirect(url_for('login'))
+        return redirect('/access/login')
     
+    user_id = session.get('user_id')
     conn = get_db_connection()
     if conn:
         cursor = conn.cursor()
         try:
-            # VULNERABLE: No access control check - IDOR vulnerability
             cursor.execute("SELECT id, username, email, role, created_at FROM users WHERE id = %s", (user_id,))
             user = cursor.fetchone()
             
@@ -216,12 +210,6 @@ def profile():
                     <p><strong>Email:</strong> {user[2]}</p>
                     <p><strong>Role:</strong> {user[3]}</p>
                     <p><strong>Created:</strong> {user[4]}</p>
-                </div>
-                
-                <div class="challenge">
-                    <h4>💡 IDOR Challenge:</h4>
-                    <p>Try changing the ID parameter to view other users' profiles!</p>
-                    <p>Example: <code>/profile?id=1</code>, <code>/profile?id=2</code>, <code>/profile?id=3</code></p>
                 </div>
                 '''
             else:
@@ -238,25 +226,21 @@ def profile():
 
 @app.route('/admin')
 def admin():
-    # VULNERABLE: Only checks if user is logged in, not if they're admin
     if not session.get('username'):
-        return redirect(url_for('login'))
+        return redirect('/access/login')
     
-    # Should check: if session.get('role') != 'admin':
     content = '''
     <h2>⚙️ Admin Panel</h2>
     <div class="result flag">
         <h3>🎉 Access Control Bypassed!</h3>
         <p>You've accessed the admin panel without proper authorization!</p>
-        <p><strong>FLAG:</strong> CTF{4cc3ss_c0ntr0l_pwn3d_2024}</p>
+        <p><strong>FLAG:</strong> CTF{4cc3ss_c0ntr0l_pwn3d_2025}</p>
     </div>
     
     <div class="challenge">
         <h3>Admin Functions:</h3>
         <ul>
             <li><a href="./admin/users">Manage Users</a></li>
-            <li><a href="./admin/settings">System Settings</a></li>
-            <li><a href="./admin/logs">View Logs</a></li>
         </ul>
     </div>
     '''
@@ -266,7 +250,7 @@ def admin():
 @app.route('/admin/users')
 def admin_users():
     if not session.get('username'):
-        return redirect(url_for('login'))
+        return redirect('/access/login')
     
     conn = get_db_connection()
     if conn:
@@ -298,7 +282,6 @@ def admin_users():
 
 @app.route('/api/users')
 def api_users():
-    # VULNERABLE: No authentication required for API
     conn = get_db_connection()
     if conn:
         cursor = conn.cursor()
@@ -315,7 +298,7 @@ def api_users():
                     'role': user[3]
                 })
             
-            return jsonify({'users': user_list, 'flag': 'CTF{4p1_4cc3ss_n0_4uth_2024}'})
+            return jsonify({'users': user_list, 'flag': os.getenv('FLAG_API', 'CTF{4p1_4cc3ss_n0_4uth_2025}')})
         except Exception as e:
             return jsonify({'error': str(e)})
         finally:
@@ -328,7 +311,6 @@ def api_users():
 def files():
     filename = request.args.get('file', 'readme.txt')
     
-    # VULNERABLE: Path traversal
     try:
         with open(f'/app/data/{filename}', 'r') as f:
             content = f.read()
@@ -342,7 +324,7 @@ def files():
         
         <div class="challenge">
             <h4>💡 Path Traversal Challenge:</h4>
-            <p>Try accessing other files: <code>/files?file=../secrets/flag.txt</code></p>
+            <p>Try accessing other files.</p>
         </div>
         '''
     except Exception as e:

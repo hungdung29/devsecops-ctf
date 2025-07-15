@@ -12,7 +12,6 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - injection-app
-      - auth-app
       - access-app
       - crypto-app
       - ssrf-app
@@ -28,57 +27,41 @@ services:
       - DB_USER=ctf_user
       - DB_PASSWORD=vulnerable123
       - DB_NAME=injection_db
-      - FLAG_A03=CTF{1nj3ct10n_m4st3r_2024}
+      - FLAG_A03=CTF{1nj3ct10n_m4st3r_2025}
     depends_on:
       - mysql
     networks:
       - ctf-network
     restart: unless-stopped
 
-  # App 2: Authentication & Session Management Failures
-  auth-app:
-    build: ./app2-auth
-    environment:
-      - REDIS_HOST=redis
-      - FLAG_A07=CTF{4uth_byp4ss_h4ck3r_2024}
-      - SECRET_KEY=weak_secret_key_123
-    depends_on:
-      - redis
-    networks:
-      - ctf-network
-    restart: unless-stopped
-
-  # App 3: Broken Access Control
+  # App 2: Broken Access Control
   access-app:
-    build: ./app3-access
+    build: ./app2-access
     environment:
       - DB_HOST=postgres
       - DB_USER=ctf_user
       - DB_PASSWORD=insecure456
       - DB_NAME=access_db
-      - FLAG_A01=CTF{4cc3ss_c0ntr0l_pwn3d_2024}
     depends_on:
       - postgres
     networks:
       - ctf-network
     restart: unless-stopped
 
-  # App 4: Cryptographic Failures
+  # App 3: Cryptographic Failures
   crypto-app:
-    build: ./app4-crypto
+    build: ./app3-crypto
     environment:
-      - FLAG_A02=CTF{cr4pt0_f41lur3_3xp0s3d_2024}
+      - FLAG_A02=CTF{cr4pt0_f41lur3_3xp0s3d_2025}
       - WEAK_ENCRYPTION_KEY=1234567890123456
     networks:
       - ctf-network
     restart: unless-stopped
 
-  # App 5: SSRF and Security Misconfiguration
+  # App 4: SSRF and Security Misconfiguration
   ssrf-app:
-    build: ./app5-ssrf
+    build: ./app4-ssrf
     environment:
-      - FLAG_A10=CTF{ssrf_4nd_m1sc0nf1g_2024}
-      - FLAG_A05=CTF{s3cur1ty_m1sc0nf1g_2024}
       - INTERNAL_API_KEY=internal_secret_api_key_789
     networks:
       - ctf-network
@@ -113,21 +96,9 @@ services:
       - ctf-network
     restart: unless-stopped
 
-  # Redis for Session Storage
-  redis:
-    image: redis:alpine
-    networks:
-      - ctf-network
-    restart: unless-stopped
-
   # Flag Server (Internal service containing flags)
   flag-server:
     build: ./flag-server
-    environment:
-      - FLAG_A04=CTF{1ns3cur3_d3s1gn_fl4w_2024}
-      - FLAG_A06=CTF{vuln3r4bl3_c0mp0n3nts_2024}
-      - FLAG_A08=CTF{1nt3gr1ty_f41lur3_2024}
-      - FLAG_A09=CTF{l0gg1ng_m0n1t0r1ng_2024}
     networks:
       - ctf-network
     restart: unless-stopped

@@ -22,7 +22,7 @@ COPY . .
 RUN mkdir -p /app/config && \
     echo "admin_api_key=internal_secret_api_key_789" > /app/config/api.conf && \
     echo "database_url=postgresql://admin:supersecret@postgres:5432/internal_db" > /app/config/db.conf && \
-    echo "CTF{ssrf_4nd_m1sc0nf1g_2024}" > /app/config/flag.txt
+    echo "CTF{ssrf_4nd_m1sc0nf1g_5}" > /app/config/flag.txt
 
 # Create non-root user
 RUN useradd -m -s /bin/bash ctfuser && \

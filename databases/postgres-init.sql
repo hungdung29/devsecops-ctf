@@ -52,17 +52,17 @@ INSERT INTO users (username, password_hash, email, role) VALUES
 INSERT INTO documents (title, content, owner_id, access_level) VALUES
 ('Public Announcement', 'This is a public document available to everyone.', 1, 'public'),
 ('Team Meeting Notes', 'Confidential meeting notes for the development team.', 2, 'team'),
-('Admin Configuration', 'Sensitive configuration data. FLAG: CTF{4cc3ss_c0ntr0l_pwn3d_2024}', 1, 'admin'),
+('Admin Configuration', 'Sensitive configuration data. FLAG: CTF{4cc3ss_c0ntr0l_pwn3d_2025}', 1, 'admin'),
 ('Personal Notes', 'Employee personal notes and reminders.', 3, 'private'),
 ('HR Document', 'Confidential HR policy document.', 2, 'confidential'),
 ('System Backup Info', 'Database backup schedules and procedures.', 1, 'admin');
 
 -- Insert admin secrets (hidden flags)
 INSERT INTO admin_secrets (secret_key, secret_value, classification) VALUES
-('backup_location', '/var/backups/secret_db_backup_2024.sql', 'confidential'),
-('api_master_key', 'CTF{m4st3r_4p1_k3y_3xp0s3d_2024}', 'top_secret'),
+('backup_location', '/var/backups/secret_db_backup_2025.sql', 'confidential'),
+('api_master_key', 'CTF{m4st3r_4p1_k3y_3xp0s3d_2025}', 'top_secret'),
 ('encryption_key', 'AES256_KEY_1234567890ABCDEF', 'secret'),
-('admin_backdoor', 'CTF{b4ckd00r_4cc3ss_gr4nt3d_2024}', 'top_secret');
+('admin_backdoor', 'CTF{b4ckd00r_4cc3ss_gr4nt3d_2025}', 'top_secret');
 
 -- Create a view that might expose sensitive data
 CREATE VIEW user_summary AS

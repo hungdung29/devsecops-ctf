@@ -34,7 +34,7 @@ INSERT INTO users (username, password, email, role) VALUES
 ('admin', 'admin123', 'admin@vulnerable.com', 'admin'),
 ('user1', 'password123', 'user1@test.com', 'user'),
 ('john_doe', 'qwerty', 'john@example.com', 'user'),
-('alice', 'alice2024', 'alice@company.com', 'user'),
+('alice', 'alice2025', 'alice@company.com', 'user'),
 ('bob', 'bob_pass', 'bob@test.org', 'moderator');
 
 INSERT INTO products (name, price, description, category) VALUES
@@ -45,10 +45,7 @@ INSERT INTO products (name, price, description, category) VALUES
 ('Chair', 199.99, 'Ergonomic office chair', 'Furniture');
 
 INSERT INTO secret_flags (flag_name, flag_value, challenge_type) VALUES
-('sql_injection', 'CTF{sql_1nj3ct10n_m4st3r_2024}', 'A03'),
-('blind_sqli', 'CTF{bl1nd_sql1_n1nj4_2024}', 'A03'),
-('union_select', 'CTF{un10n_s3l3ct_h3r0_2024}', 'A03'),
-('admin_secret', 'CTF{4dm1n_s3cr3t_l34k3d_2024}', 'A03');
+('sql_injection', 'CTF{sql_1nj3ct10n_m4st3r_2025}', 'A03');
 
 -- Create a vulnerable stored procedure
 DELIMITER //
