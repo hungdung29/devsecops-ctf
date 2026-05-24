@@ -1,0 +1,2 @@
+[*] Testing SQL Injection on: http://localhost:8080/injection/login
+[OK] SQL Injection payload did not expose admin/flag.

@@ -1,0 +1,68 @@
+   108	@app.route('/search')
+   109	def search_form():
+   110	    query = request.args.get('q', '')
+   111	    results = []
+   112	    
+   113	    if query:
+   114	        conn = get_db_connection()
+   115	        if conn:
+   116	            cursor = conn.cursor()
+   117	            try:
+   118	                vulnerable_query = f"SELECT id, name, price, description FROM products WHERE name LIKE '%{query}%'"
+   119	                logging.info(f"Executing query: {vulnerable_query}")
+   120	                cursor.execute(vulnerable_query)
+   121	                results = cursor.fetchall()
+   122	            except mysql.connector.Error as err:
+   123	                results = [("Error", str(err), "", "")]
+   124	            finally:
+   125	                cursor.close()
+   126	                conn.close()
+   127	    
+   128	    content = f'''
+   129	    <h2>🔍 Product Search (SQL Injection Challenge)</h2>
+   130	    <form method="GET" action="./search">
+   131	        <label>Search Products:</label><br>
+   132	        <input type="text" name="q" placeholder="Enter product name..." value="{query}">
+   133	        <button type="submit">Search</button>
+   134	    </form>
+   135	    
+   136	    {'<div class="result"><h3>Search Results:</h3><table><tr><th>ID</th><th>Name</th><th>Price</th><th>Description</th></tr>' if results else ''}
+   137	    {''.join([f'<tr><td>{row[0]}</td><td>{row[1]}</td><td>${row[2]}</td><td>{row[3]}</td></tr>' for row in results]) if results else ''}
+   138	    {'</table></div>' if results else ''}
+   139	    
+   140	    <div class="challenge">
+   141	        <h4>💡 Hint:</h4>
+   142	        <p>The search functionality might be vulnerable to SQL injection. Try searching for: <code>' OR 1=1; --</code></p>
+   143	    </div>
+   144	    '''
+   145	    
+   146	    return render_template_string(BASE_TEMPLATE, content=content)
+   147	
+   148	@app.route('/login', methods=['GET', 'POST'])
+   149	def login():
+   150	    if request.method == 'POST':
+   151	        username = request.form.get('username', '')
+   152	        password = request.form.get('password', '')
+   153	        
+   154	        conn = get_db_connection()
+   155	        if conn:
+   156	            cursor = conn.cursor()
+   157	            try:
+   158	                query = f"SELECT id, username, role FROM users WHERE username = '{username}' AND password = '{password}'"
+   159	                logging.info(f"Login query: {query}")
+   160	                cursor.execute(query)
+   161	                user = cursor.fetchone()
+   162	                
+   163	                if user:
+   164	                    session['user_id'] = user[0]
+   165	                    session['username'] = user[1] 
+   166	                    session['role'] = user[2]
+   167	                    
+   168	                    if user[2] == 'admin':
+   169	                        flag = os.getenv('FLAG_A03', 'CTF{1nj3ct10n_m4st3r_2025}')
+   170	                        content = f'''
+   171	                        <div class="result flag">
+   172	                            <h2>🎉 Login Successful!</h2>
+   173	                            <p>Welcome, Admin {user[1]}!</p>
+   174	                            <p><strong>FLAG CAPTURED:</strong> {flag}</p>
+   175	                        </div>

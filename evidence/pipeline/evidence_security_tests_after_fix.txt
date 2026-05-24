@@ -1,0 +1,18 @@
+========================================
+ Running DevSecOps Security Tests
+========================================
+
+[1/2] SQL Injection test
+[*] Testing SQL Injection on: http://localhost:8080/injection/login
+[OK] SQL Injection payload did not expose admin/flag.
+[PASS] SQL Injection test passed.
+
+[2/2] SSRF test
+[*] Testing SSRF on: http://localhost:8080/ssrf/proxy
+[*] Internal target: http://flag-server:8080/flags
+[OK] SSRF payload did not expose internal flag.
+[PASS] SSRF test passed.
+
+========================================
+Security regression tests PASSED.
+No tested vulnerability was exploitable.

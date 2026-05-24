@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Injection Challenges - OWASP A03</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .challenge { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        input, textarea { width: 300px; padding: 8px; margin: 5px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 3px solid #007bff; }
+        .flag { background: #d4edda; border-left-color: #28a745; color: #155724; font-weight: bold; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Injection Vulnerabilities Challenge</h1>
+        <div class="challenge warning">
+            <h3>⚠️ Educational Purpose Only</h3>
+            <p>This application contains intentional vulnerabilities. Find and exploit them to capture flags!</p>
+        </div>
+        
+        
+    <h2>🔍 Product Search (SQL Injection Challenge)</h2>
+    <form method="GET" action="./search">
+        <label>Search Products:</label><br>
+        <input type="text" name="q" placeholder="Enter product name..." value="' OR '1'='1' -- -">
+        <button type="submit">Search</button>
+    </form>
+    
+    <div class="result"><h3>Search Results:</h3><table><tr><th>ID</th><th>Name</th><th>Price</th><th>Description</th></tr>
+    <tr><td>1</td><td>Laptop</td><td>$999.99</td><td>High-performance laptop</td></tr><tr><td>2</td><td>Mouse</td><td>$29.99</td><td>Wireless mouse</td></tr><tr><td>3</td><td>Keyboard</td><td>$79.99</td><td>Mechanical keyboard</td></tr><tr><td>4</td><td>Monitor</td><td>$299.99</td><td>4K monitor</td></tr><tr><td>5</td><td>Chair</td><td>$199.99</td><td>Ergonomic office chair</td></tr>
+    </table></div>
+    
+    <div class="challenge">
+        <h4>💡 Hint:</h4>
+        <p>The search functionality might be vulnerable to SQL injection. Try searching for: <code>' OR 1=1; --</code></p>
+    </div>
+    
+        
+        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 5px;">
+            <h3>🎯 Available Challenges:</h3>
+            <ul>
+                <li><a href="./">Home</a></li>
+                <li><a href="./search">SQL Injection - Product Search</a></li>
+                <li><a href="./login">SQL Injection - Login Bypass</a></li>
+                <li><a href="./ping">Command Injection - Network Tools</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

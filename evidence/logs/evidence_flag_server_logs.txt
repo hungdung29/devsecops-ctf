@@ -1,0 +1,19 @@
+flag-server-1  | 🏴 Starting Internal Flag Server...
+flag-server-1  | 📍 Working Directory: /app
+flag-server-1  | 🔐 Secrets Directory: /app/secrets
+flag-server-1  | 🌐 Hostname: c1838fdc1e08
+flag-server-1  | 🔗 Internal URL: http://flag-server:8080
+flag-server-1  | ⚠️  WARNING: This server should only be accessible internally!
+flag-server-1  | 💡 SSRF Hint: Target this server from other internal services
+flag-server-1  | 🎯 Primary flag endpoint: /flags
+flag-server-1  |  * Serving Flask app 'app'
+flag-server-1  |  * Debug mode: on
+flag-server-1  | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+flag-server-1  |  * Running on all addresses (0.0.0.0)
+flag-server-1  |  * Running on http://127.0.0.1:8080
+flag-server-1  |  * Running on http://172.18.0.4:8080
+flag-server-1  | [33mPress CTRL+C to quit[0m
+flag-server-1  |  * Restarting with stat
+flag-server-1  |  * Debugger is active!
+flag-server-1  |  * Debugger PIN: 138-956-157
+flag-server-1  | 172.18.0.3 - - [24/May/2026 05:37:21] "GET /flags HTTP/1.1" 200 -

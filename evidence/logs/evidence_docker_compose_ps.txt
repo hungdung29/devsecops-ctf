@@ -1,0 +1,9 @@
+NAME                             IMAGE                          COMMAND                  SERVICE         CREATED         STATUS         PORTS
+owasp-ctf-2025-access-app-1      owasp-ctf-2025-access-app      "python app.py"          access-app      5 minutes ago   Up 5 minutes   5003/tcp
+owasp-ctf-2025-crypto-app-1      owasp-ctf-2025-crypto-app      "python app.py"          crypto-app      5 minutes ago   Up 5 minutes   5004/tcp
+owasp-ctf-2025-flag-server-1     owasp-ctf-2025-flag-server     "python app.py"          flag-server     5 minutes ago   Up 5 minutes   8080/tcp
+owasp-ctf-2025-injection-app-1   owasp-ctf-2025-injection-app   "python app.py"          injection-app   5 minutes ago   Up 5 minutes   5001/tcp
+owasp-ctf-2025-mysql-1           mysql:8.0                      "docker-entrypoint.s…"   mysql           5 minutes ago   Up 5 minutes   3306/tcp, 33060/tcp
+owasp-ctf-2025-nginx-1           nginx:alpine                   "/docker-entrypoint.…"   nginx           5 minutes ago   Up 5 minutes   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp, 0.0.0.0:8443->443/tcp, [::]:8443->443/tcp
+owasp-ctf-2025-postgres-1        postgres:13                    "docker-entrypoint.s…"   postgres        5 minutes ago   Up 5 minutes   5432/tcp
+owasp-ctf-2025-ssrf-app-1        owasp-ctf-2025-ssrf-app        "python app.py"          ssrf-app        5 minutes ago   Up 5 minutes   5005/tcp

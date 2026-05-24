@@ -1,0 +1,56 @@
+    90	    </div>
+    91	    
+    92	    
+    93	    <div class="challenge">
+    94	        <h3>🚀 Get Started:</h3>
+    95	        <p><a href="./proxy" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Launch Web Proxy Challenge</a></p>
+    96	    </div>
+    97	    '''
+    98	    return render_template_string(BASE_TEMPLATE, content=content)
+    99	
+   100	
+   101	@app.route('/proxy', methods=['GET', 'POST'])
+   102	def web_proxy():
+   103	    if request.method == 'POST':
+   104	        target_url = request.form.get('target_url', '').strip()
+   105	        custom_headers = request.form.get('custom_headers', '').strip()
+   106	        
+   107	        if not target_url:
+   108	            result = '<div class="result error"><p>Please provide a target URL!</p></div>'
+   109	        else:
+   110	            try:
+   111	                # Parse custom headers
+   112	                headers = {'User-Agent': 'SSRF-Proxy/1.0'}
+   113	                if custom_headers:
+   114	                    for line in custom_headers.split('\n'):
+   115	                        if ':' in line:
+   116	                            key, value = line.split(':', 1)
+   117	                            headers[key.strip()] = value.strip()
+   118	                
+   119	
+   120	                response = requests.get(target_url, headers=headers, timeout=15)
+   121	                
+   122	                result = f'''
+   123	                <div class="result">
+   124	                    <h4>Proxied Response from: {target_url}</h4>
+   125	                    <p><strong>Status:</strong> {response.status_code}</p>
+   126	                    <p><strong>Content-Type:</strong> {response.headers.get('Content-Type', 'Unknown')}</p>
+   127	                    <p><strong>Response Headers:</strong></p>
+   128	                    <pre>{json.dumps(dict(response.headers), indent=2)}</pre>
+   129	                    <p><strong>Content:</strong></p>
+   130	                    <pre>{response.text[:1500]}{'...' if len(response.text) > 1500 else ''}</pre>
+   131	                </div>
+   132	                '''
+   133	                
+   134	                if 'CTF{' in response.text:
+   135	                    result += '''
+   136	                    <div class="result flag">
+   137	                        <h3>🎉 Flag Captured!</h3>
+   138	                        <p>Your proxy request found a flag!</p>
+   139	                    </div>
+   140	                    '''
+   141	                
+   142	            except Exception as e:
+   143	                result = f'<div class="result error"><p>Proxy error: {str(e)}</p></div>'
+   144	        
+   145	        content = f'''

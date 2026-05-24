@@ -1,0 +1,12 @@
+injection-app-1  |  * Serving Flask app 'app'
+injection-app-1  |  * Debug mode: on
+injection-app-1  | INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+injection-app-1  |  * Running on all addresses (0.0.0.0)
+injection-app-1  |  * Running on http://127.0.0.1:5001
+injection-app-1  |  * Running on http://172.18.0.8:5001
+injection-app-1  | INFO:werkzeug:[33mPress CTRL+C to quit[0m
+injection-app-1  | INFO:werkzeug: * Restarting with stat
+injection-app-1  | WARNING:werkzeug: * Debugger is active!
+injection-app-1  | INFO:werkzeug: * Debugger PIN: 944-410-195
+injection-app-1  | INFO:root:Login query: SELECT id, username, role FROM users WHERE username = 'admin' -- -' AND password = 'test'
+injection-app-1  | INFO:werkzeug:172.18.0.9 - - [24/May/2026 05:37:21] "POST /login HTTP/1.1" 200 -

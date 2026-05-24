@@ -1,0 +1,180 @@
+     1	#!/usr/bin/env python3
+     2	"""
+     3	OWASP Top 10 - A10: Server-Side Request Forgery (SSRF)
+     4	This application demonstrates SSRF vulnerabilities for educational purposes.
+     5	"""
+     6	
+     7	import os
+     8	import requests
+     9	import subprocess
+    10	import urllib.parse
+    11	from flask import Flask, render_template_string, request, jsonify
+    12	import logging
+    13	import json
+    14	
+    15	app = Flask(__name__)
+    16	app.secret_key = 'ssrf_vulnerable_secret_2025'
+    17	
+    18	# Configure logging
+    19	logging.basicConfig(level=logging.INFO)
+    20	
+    21	
+    22	def is_safe_url(target_url):
+    23	    """
+    24	    Validate URL before server-side request.
+    25	    Return True only if URL is allowed to be fetched.
+    26	    """
+    27	
+    28	    try:
+    29	        parsed = urllib.parse.urlparse(target_url)
+    30	
+    31	        # Only allow http/https
+    32	        if parsed.scheme not in ["http", "https"]:
+    33	            return False, "Only HTTP and HTTPS schemes are allowed"
+    34	
+    35	        hostname = parsed.hostname
+    36	        if not hostname:
+    37	            return False, "Missing hostname"
+    38	
+    39	        # Block internal hostname via service Docker name
+    40	        blocked_hostnames = {
+    41	            "flag-server",
+    42	            "localhost",
+    43	            "127.0.0.1",
+    44	            "0.0.0.0"
+    45	        }
+    46	
+    47	        if hostname in blocked_hostnames:
+    48	            return False, "Internal hostname is not allowed"
+    49	
+    50	        # Resolve hostname to IP for blocking private/internal IP
+    51	        ip = socket.gethostbyname(hostname)
+    52	        ip_obj = ipaddress.ip_address(ip)
+    53	
+    54	        if (
+    55	            ip_obj.is_private
+    56	            or ip_obj.is_loopback
+    57	            or ip_obj.is_link_local
+    58	            or ip_obj.is_multicast
+    59	            or ip_obj.is_reserved
+    60	        ):
+    61	            return False, "Internal or private IP address is not allowed"
+    62	
+    63	        return True, "URL is allowed"
+    64	
+    65	    except Exception as e:
+    66	        return False, f"Invalid URL: {str(e)}"
+    67	
+    68	# HTML Template
+    69	BASE_TEMPLATE = '''
+    70	<!DOCTYPE html>
+    71	<html>
+    72	<head>
+    73	    <meta charset="utf-8">
+    74	    <title>SSRF Proxy Challenge - OWASP A10</title>
+    75	    <style>
+    76	        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    77	        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+    78	        .challenge { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    79	        .warning { background: #fff3cd; border-color: #ffc107; color: #856404; }
+    80	        .success { background: #d4edda; border-color: #28a745; color: #155724; }
+    81	        .error { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+    82	        input, textarea { width: 400px; padding: 8px; margin: 5px; }
+    83	        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+    84	        button:hover { background: #0056b3; }
+    85	        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 3px solid #007bff; }
+    86	        .flag { background: #d4edda; border-left-color: #28a745; color: #155724; font-weight: bold; }
+    87	        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; max-height: 300px; overflow-y: auto; }
+    88	        .url-box { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    89	    </style>
+    90	</head>
+    91	<body>
+    92	    <div class="container">
+    93	        <h1>🌐 Server-Side Request Forgery (SSRF) Proxy Challenge</h1>
+    94	        <div class="challenge warning">
+    95	            <h3>⚠️ Educational Purpose Only</h3>
+    96	            <p>This application contains intentional SSRF vulnerabilities. Exploit the proxy to capture flags!</p>
+    97	        </div>
+    98	        
+    99	        {{ content | safe }}
+   100	        
+   101	        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 5px;">
+   102	            <h3>🎯 Navigation:</h3>
+   103	            <ul>
+   104	                <li><a href="./">Home</a></li>
+   105	                <li><a href="./proxy">Web Proxy</a></li>
+   106	            </ul>
+   107	        </div>
+   108	    </div>
+   109	</body>
+   110	</html>
+   111	'''
+   112	
+   113	@app.route('/')
+   114	def index():
+   115	    content = '''
+   116	    <h2>Welcome to the SSRF Proxy Security Lab</h2>
+   117	    <p>This application demonstrates Server-Side Request Forgery vulnerabilities through a web proxy service.</p>
+   118	    
+   119	    <div class="challenge">
+   120	        <h3>Your Mission:</h3>
+   121	        <ul>
+   122	            <li>Exploit the web proxy to perform SSRF attacks</li>
+   123	            <li>Bypass URL filters and access internal services</li>
+   124	            <li>Use custom headers to access protected endpoints</li>
+   125	            <li>Capture flags in the format: <code>CTF{...}</code></li>
+   126	        </ul>
+   127	    </div>
+   128	    
+   129	    <div class="challenge">
+   130	        <h3>Common SSRF Targets:</h3>
+   131	        <ul>
+   132	            <li><strong>Localhost services:</strong> <code>http://localhost:PORT/</code></li>
+   133	            <li><strong>Internal networks:</strong> <code>http://192.168.1.1/</code></li>
+   134	            <li><strong>Cloud metadata:</strong> <code>http://169.254.169.254/</code></li>
+   135	            <li><strong>Docker services:</strong> <code>http://flag-server:8080/</code></li>
+   136	        </ul>
+   137	    </div>
+   138	    
+   139	    
+   140	    <div class="challenge">
+   141	        <h3>🚀 Get Started:</h3>
+   142	        <p><a href="./proxy" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Launch Web Proxy Challenge</a></p>
+   143	    </div>
+   144	    '''
+   145	    return render_template_string(BASE_TEMPLATE, content=content)
+   146	
+   147	
+   148	@app.route('/proxy', methods=['GET', 'POST'])
+   149	def web_proxy():
+   150	    if request.method == 'POST':
+   151	        target_url = request.form.get('target_url', '').strip()
+   152	        custom_headers = request.form.get('custom_headers', '').strip()
+   153	        
+   154	        if not target_url:
+   155	            result = '<div class="result error"><p>Please provide a target URL!</p></div>'
+   156	        else:
+   157	            try:
+   158	                # Parse custom headers
+   159	                headers = {'User-Agent': 'SSRF-Proxy/1.0'}
+   160	                if custom_headers:
+   161	                    for line in custom_headers.split('\n'):
+   162	                        if ':' in line:
+   163	                            key, value = line.split(':', 1)
+   164	                            headers[key.strip()] = value.strip()
+   165	                
+   166	                is_allowed, reason = is_safe_url(target_url)
+   167	
+   168	                if not is_allowed:
+   169	                    content = f'''
+   170	                    <h2>🌐 URL Proxy</h2>
+   171	                    <div class="result error">
+   172	                        <h3>Request Blocked</h3>
+   173	                        <p><strong>Reason:</strong> {reason}</p>
+   174	                        <p><strong>Blocked URL:</strong> {target_url}</p>
+   175	                    </div>
+   176	                    '''
+   177	                    return render_template_string(BASE_TEMPLATE, content=content)
+   178	
+   179	                response = requests.get(target_url, headers=headers, timeout=15)
+   180	                

@@ -1,0 +1,23 @@
+========================================
+ Running DevSecOps Security Tests
+========================================
+
+[1/2] SQL Injection test
+[*] Testing SQL Injection on: http://localhost:8080/injection/login
+[VULNERABLE] SQL Injection is exploitable.
+Login Successful
+FLAG CAPTURED
+CTF{1nj3ct10n_m4st3r_2025}
+[FAIL] SQL Injection vulnerability detected.
+
+[2/2] SSRF test
+[*] Testing SSRF on: http://localhost:8080/ssrf/proxy
+[*] Internal target: http://flag-server:8080/flags
+[VULNERABLE] SSRF is exploitable.
+ssrf_flag
+CTF{ssrf_1nt3rn4l_4cc3ss_2025}
+[FAIL] SSRF vulnerability detected.
+
+========================================
+Security regression tests FAILED.
+At least one vulnerability is still exploitable.
