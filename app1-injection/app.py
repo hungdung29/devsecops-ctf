@@ -116,9 +116,9 @@ def search_form():
             cursor = conn.cursor()
             try:
                 safe_query = "SELECT id, name, price, description FROM products WHERE name LIKE %s"
-		search_pattern = f"%{query}%"
-		logging.info("Executing product search with parameterized query")
-		cursor.execute(safe_query, (search_pattern,))
+                search_pattern = f"%{query}%"
+                logging.info("Executing product search with parameterized query")
+                cursor.execute(safe_query, (search_pattern,))
                 results = cursor.fetchall()
             except mysql.connector.Error as err:
                 results = [("Error", str(err), "", "")]

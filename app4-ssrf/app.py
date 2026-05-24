@@ -18,6 +18,53 @@ app.secret_key = 'ssrf_vulnerable_secret_2025'
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
+def is_safe_url(target_url):
+    """
+    Validate URL before server-side request.
+    Return True only if URL is allowed to be fetched.
+    """
+
+    try:
+        parsed = urllib.parse.urlparse(target_url)
+
+        # Only allow http/https
+        if parsed.scheme not in ["http", "https"]:
+            return False, "Only HTTP and HTTPS schemes are allowed"
+
+        hostname = parsed.hostname
+        if not hostname:
+            return False, "Missing hostname"
+
+        # Block internal hostname via service Docker name
+        blocked_hostnames = {
+            "flag-server",
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0"
+        }
+
+        if hostname in blocked_hostnames:
+            return False, "Internal hostname is not allowed"
+
+        # Resolve hostname to IP for blocking private/internal IP
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+
+        if (
+            ip_obj.is_private
+            or ip_obj.is_loopback
+            or ip_obj.is_link_local
+            or ip_obj.is_multicast
+            or ip_obj.is_reserved
+        ):
+            return False, "Internal or private IP address is not allowed"
+
+        return True, "URL is allowed"
+
+    except Exception as e:
+        return False, f"Invalid URL: {str(e)}"
+
 # HTML Template
 BASE_TEMPLATE = '''
 <!DOCTYPE html>
@@ -116,6 +163,18 @@ def web_proxy():
                             key, value = line.split(':', 1)
                             headers[key.strip()] = value.strip()
                 
+                is_allowed, reason = is_safe_url(target_url)
+
+                if not is_allowed:
+                    content = f'''
+                    <h2>🌐 URL Proxy</h2>
+                    <div class="result error">
+                        <h3>Request Blocked</h3>
+                        <p><strong>Reason:</strong> {reason}</p>
+                        <p><strong>Blocked URL:</strong> {target_url}</p>
+                    </div>
+                    '''
+                    return render_template_string(BASE_TEMPLATE, content=content)
 
                 response = requests.get(target_url, headers=headers, timeout=15)
                 
