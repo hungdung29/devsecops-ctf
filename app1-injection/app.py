@@ -115,9 +115,10 @@ def search_form():
         if conn:
             cursor = conn.cursor()
             try:
-                vulnerable_query = f"SELECT id, name, price, description FROM products WHERE name LIKE '%{query}%'"
-                logging.info(f"Executing query: {vulnerable_query}")
-                cursor.execute(vulnerable_query)
+                safe_query = "SELECT id, name, price, description FROM products WHERE name LIKE %s"
+		search_pattern = f"%{query}%"
+		logging.info("Executing product search with parameterized query")
+		cursor.execute(safe_query, (search_pattern,))
                 results = cursor.fetchall()
             except mysql.connector.Error as err:
                 results = [("Error", str(err), "", "")]
@@ -155,9 +156,9 @@ def login():
         if conn:
             cursor = conn.cursor()
             try:
-                query = f"SELECT id, username, role FROM users WHERE username = '{username}' AND password = '{password}'"
-                logging.info(f"Login query: {query}")
-                cursor.execute(query)
+                query = f"SELECT id, username, role FROM users WHERE username = %s AND password = %s"
+                logging.info(f"Login query executed with parameterized query")
+                cursor.execute(query, (username, password))
                 user = cursor.fetchone()
                 
                 if user:
