@@ -1,0 +1,53 @@
+name: DevSecOps CTF Security Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  security-regression-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Bước 1: Lấy source code từ repository
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # Bước 2: Kiểm tra Docker có sẵn trong runner
+      - name: Check Docker version
+        run: |
+          docker --version
+          docker compose version
+
+      # Bước 3: Khởi động CTF lab bằng Docker Compose
+      - name: Start CTF lab
+        run: |
+          docker compose up -d --build
+
+      # Bước 4: Đợi service khởi động xong
+      - name: Wait for services
+        run: |
+          sleep 60
+          docker compose ps
+
+      # Bước 5: Chạy security regression tests
+      # Nếu lấy được flag, script sẽ exit 1 và pipeline fail
+      - name: Run SQLi and SSRF security tests
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/security_regression_tests.sh
+
+      # Bước 6: In log để debug nếu pipeline fail
+      - name: Show service logs
+        if: always()
+        run: |
+          docker compose logs --tail=100
+
+      # Bước 7: Dọn môi trường
+      - name: Stop CTF lab
+        if: always()
+        run: |
+          docker compose down --remove-orphans
